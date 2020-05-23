@@ -6,11 +6,10 @@ const method = require("method-override")
 const fs = require('fs');
 const Picture = require("./model/Images")
 
-require("dotenv/config")
 
 const app = express()
 
-mongoose.connect(process.env.Mongo,
+mongoose.connect("mongodb+srv://passport:passport@passport-auth-qfong.mongodb.net/book?retryWrites=true&w=majority",
         {
            useNewUrlParser:true,
            useUnifiedTopology:true,
