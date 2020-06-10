@@ -1,49 +1,36 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const method = require("method-override")
-const fs = require('fs');
+const mongoose = require('mongoose');
+const method = require('method-override');
 const Picture = require("./model/Images")
+require("dotenv/config")
 
 
-const app = express()
+const app =express()
 
-mongoose.connect("mongodb+srv://passport:passport@passport-auth-qfong.mongodb.net/book?retryWrites=true&w=majority",
-        {
-           useNewUrlParser:true,
-           useUnifiedTopology:true,
-        },
-        () => console.log("MongoDB connected sir")
-)
-
-// Model
-
-app.set("views",path.join(__dirname,"views"))
-app.set("view engine", "ejs")
-app.use(express.static("public"))
-app.use(method("_method"))
+mongoose.connect(process.env.Mongo,{
+    useNewUrlParser:true,
+    useUnifiedTopology:true
+},()=> console.log('database created'))
 
 
+app.set('views',path.join(__dirname,'views'))
+app.set("view engine",'ejs')
+app.use(method('_method'))
 
-app.get("/upload",(req,res) =>{
-    res.render("upload")
-})
 
-app.get("/uploads",(req,res) =>{
-    res.redirect("/")
-})
-
-app.get("/",(req,res) =>{
+app.get('/upload',(req,res) =>{
     Picture.find({})
-        .then(images =>{
-            res.render("index",{images: images})
-        })
+    .then(images =>{
+        res.render('upload',{images : images})
+       
+    })
 })
 
 
 let storage = multer.diskStorage({
-    destination:"./public/uploads/images/",
+    destination:'./',
     filename:(req,file,cb) =>{
         cb(null,file.originalname)
     }
@@ -51,87 +38,65 @@ let storage = multer.diskStorage({
 
 
 let upload = multer({
+
     storage:storage,
-    fileFilter: (req,file,cb) =>{
-        chech(file,cb)
+    fileFilter:(req,file,cb)=>{
+        check(file,cb)
     }
 
-}).single("single")
+}).single('single')
 
 
-
-function chech(file,cb){
-    const filetype = /jpeg|jpg|png|gif/
+function check(file,cb){
+    const filetype = /jpeg|pdf|img|png/
     const extname = filetype.test(path.extname(file.originalname).toLowerCase())
-
     if(extname){
         return cb(null,true)
     }else{
-        cb("Error : Please images only")
+        cb('ERROR')
     }
-
 }
 
-app.get("/uploadsingle",(req,res) =>{
-    res.redirect("/upload")
+
+app.get('/uploads',(req,res) =>{
+    res.download('./Assignment1.pdf')
 })
 
 
-app.post("/uploadsingle",upload,(req,res) =>{
-
-     
+app.post('/uploadsingle',upload,(req,res,next) =>{
     const file = req.file
-
-    if(file == undefined){
-        res.render('upload', {
-            msg: "Please Upload the file !"
-          });
-    }else{
-
-        let url = file.path.replace("public","")
-        Picture.findOne({imgurl:url})
-            .then(img =>{
-                if(img){
-                    res.render('upload', {
-                        msg: "File Exist"
-                    });
-                }else{
-                Picture.create({imgurl:url})
-                .then(img =>{
-                    if(img){
-                        res.render("upload",{
-                            msg:"File uploaded View it in gallery!"
-                        })
-                    }
-                })
-            }
-            })
-            .catch(err =>{
-                console.log(err)
-            })
+    if(!file){
+        res.redirect('upload')
     }
-})
-
-app.delete("/delete/:id",(req,res) =>{
-    let search = {_id: req.params.id}
-    Picture.findOne(search)
-        .then(img =>{
-            fs.unlink(__dirname+ "/public/"+img.imgurl,(err) =>{
-                if(err){
-                    return console.log(err)
-                }
-                Picture.deleteOne(search)
-                    .then(img =>{
-                        res.redirect("/")
-                    })
+  
+    let url = file.path
+    Picture.findOne({imgurl : url})
+    .then(img =>{
+        if(img){
+            console.log('Exist')
+            res.render('upload',{
+                msg: 'File Exists !!!'
             })
-        }).catch(err =>{
-            console.log(err)
+        }else{
+     
+        Picture.create({imgurl:url})
+        .then(img=>{
+
+            if(req.file == undefined){
+                res.render('upload', {
+                  msg: 'Error: No File Selected!'
+                });
+              } else {
+                res.redirect('/upload');
+              }
         })
+    }
+    })
 })
 
 
 
-const PORT = process.env.PORT || 5000
 
-app.listen(PORT, console.log(`Server started at port ${PORT}`))
+const port = 4000;
+
+app.listen(port, () => console.log(`Server started on port ${port}`));

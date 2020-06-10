@@ -12,19 +12,20 @@
 
     <div class="container w-75">
     <h1 class="text-center m-5"><i class="fas fa-images " ></i>    Your Gallery <a href="/uploadsingle" class="btn btn-success ml-5">Add More</a>  </h1>
-    <%= typeof msg != 'undefined' ? msg : '' %>
+   
     <div class="row text-center">
         <% images.forEach(img =>{ %>
 
             <div class="col-4">
             <img height="250" width="250" src="<%= img.imgurl%>" alt="..." class="img-thumbnail">
     
-            <form action="/delete/<%= img.id%>?_method=DELETE" method="POST">
+            <button class="btn btn-warning mt-3" type="submit">Download</button>
+            <!-- <form action="/delete/<%= img.id%>?_method=DELETE" method="POST">
                 <input type="hidden" name="_method" value="DELETE">
                 <button class="btn btn-danger mt-3" type="submit">delete</button>
             </form>
             <br><br>
-            </div>
+            </div> -->
 
         <% }) %>
 
